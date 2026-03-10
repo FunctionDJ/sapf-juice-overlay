@@ -1,0 +1,10 @@
+127.0.0.1:3000/singles
+127.0.0.1:3000/doubles
+127.0.0.1:3000/crews
+127.0.0.1:3000/casters
+127.0.0.1:3000/juice
+
+maybe we store juices like 
+Orange = [P1, P2]
+Apple = [] 
+Etc

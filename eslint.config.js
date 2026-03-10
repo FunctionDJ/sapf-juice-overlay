@@ -10,6 +10,7 @@ export default defineConfig(
 	tseslint.configs.strictTypeChecked,
 	tseslint.configs.stylisticTypeChecked,
 	{
+		files: ["src/**/*.ts"],
 		languageOptions: {
 			parserOptions: {
 				projectService: true,

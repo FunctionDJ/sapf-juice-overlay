@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "mock-api": "node mock-api/server.js",
+    "mock-api:fast": "MOCK_TICK_MS=1200 node mock-api/server.js"
+  },
   "dependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.0",

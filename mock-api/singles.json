@@ -1,0 +1,40 @@
+{
+	"player1": {
+		"fullTag": "Branspeed",
+		"tag": "Branspeed",
+		"prefix": "",
+		"pronouns": "He/Him",
+		"twitter": "TheBranspeed",
+		"country": "United Kingdom",
+		"character": {
+			"fullName": "Marth Red",
+			"character": "Marth",
+			"skin": "Red"
+		},
+		"score": 3,
+		"port": 2,
+		"losers": false
+	},
+	"player2": {
+		"fullTag": "Bonjwa",
+		"tag": "Bonjwa",
+		"prefix": "",
+		"pronouns": "",
+		"twitter": "AndresRojasJ98",
+		"country": "Spain",
+		"character": {
+			"fullName": "Fox Blue",
+			"character": "Fox",
+			"skin": "Blue"
+		},
+		"score": 2,
+		"port": 1,
+		"losers": false
+	},
+	"phase": "",
+	"round": "Grand Finals Reset",
+	"bestOf": 3,
+	"swapSides": true,
+	"handwarmer": false,
+	"overlayVisible": true
+}

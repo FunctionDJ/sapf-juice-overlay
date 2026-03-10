@@ -1,0 +1,7 @@
+{
+	"apiUrl": "http://localhost:3000",
+	"refreshIntervalMs": 500,
+	"writeParticleCountDebug": false,
+	"waveParticles": 10,
+	"dt": 0.25
+}
