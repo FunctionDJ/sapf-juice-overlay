@@ -1,7 +1,39 @@
 {
 	"apiUrl": "http://localhost:3000",
 	"refreshIntervalMs": 500,
-	"writeParticleCountDebug": false,
+	"easingFactor": 0.085,
+	"colorTransitionDurationMs": 1000,
+	"writeParticleCountDebug": true,
 	"waveParticles": 10,
-	"dt": 0.25
+	"dt": 0.25,
+	"colors": {
+		"orange": {
+			"background": "#faf4bd",
+			"shadow": "#fcea3f",
+			"side": "#fecf64",
+			"frontBorder": "#ffeac4",
+			"fruit": "#fba930"
+		},
+		"apple": {
+			"background": "#e4ffd4",
+			"shadow": "#f19bdd",
+			"side": "#86ff5c",
+			"frontBorder": "#b8ff9a",
+			"fruit": "#4cbd64"
+		},
+		"grape": {
+			"background": "#eef8e9",
+			"shadow": "#7bcdfe",
+			"side": "#ad7ae7",
+			"frontBorder": "#d3a6ff",
+			"fruit": "#a930c0"
+		},
+		"cherry": {
+			"background": "#fff9ec",
+			"shadow": "#d3a6ff",
+			"side": "#fb9e8b",
+			"frontBorder": "#ffbeb2",
+			"fruit": "#ff5b78"
+		}
+	}
 }

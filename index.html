@@ -11,10 +11,13 @@
 	<body style="background: #242321; overflow: hidden">
 		<div
 			style="
+				width: 100vw;
 				aspect-ratio: 16/9;
+				max-height: 100vh;
 				outline: 1px solid red;
 				outline-offset: -1px;
 				position: relative;
+				margin: 0 auto;
 			"
 		>
 			<div
@@ -27,37 +30,75 @@
 					left: 0;
 					width: 100%;
 					z-index: 10;
-
 				"
 			></div>
 			<div
 				style="
 					position: absolute;
-					top: 50%;
-					transition: top 3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+					top: 0;
+					left: 0;
+					height: 100%;
+					width: 100%;
+					z-index: 5;
 				"
 			>
 				<canvas
 					data-fill-color="#fecf64"
-					id="canvas"
-					width="500px"
-					height="3000px"
+					id="canvas-left"
+					width="500"
+					height="1080"
+					style="display: block; height: 100%; width: auto; position: absolute"
+				></canvas>
+				<canvas
+					data-fill-color="#86ff5c"
+					id="canvas-right"
+					width="500"
+					height="1080"
 					style="
 						display: block;
-						width: 20vw;
+						height: 100%;
+						width: auto;
 						position: absolute;
-						transform: translateY(-50%);
-						border: 3px solid black;
+						right: 0;
 					"
 				></canvas>
 			</div>
 
-			<div style="position: absolute; top: 20%; left: 30%; z-index: 20">
-				<button id="decrement" style="width: 20px" onclick="decrement(0)">-</button>
-				<button id="increment" style="width: 20px" onclick="increment(0)">+</button>
+			<div
+				style="
+					position: absolute;
+					top: 20%;
+					left: 10%;
+					z-index: 20;
+					display: flex;
+					flex-direction: column;
+					gap: 10px;
+				"
+			>
+				<div>
+					<button id="decrement" style="width: 20px">-</button>
+					<button id="increment" style="width: 20px">+</button>
+				</div>
+				<select id="fruit-left" style="min-width: 80px"></select>
+			</div>
+			<div
+				style="
+					position: absolute;
+					top: 20%;
+					right: 10%;
+					z-index: 20;
+					display: flex;
+					flex-direction: column;
+					gap: 10px;
+				"
+			>
+				<div>
+					<button id="decrement-right" style="width: 20px">-</button>
+					<button id="increment-right" style="width: 20px">+</button>
+				</div>
+				<select id="fruit-right" style="min-width: 80px"></select>
 			</div>
 		</div>
 		<script src="src/main.ts" type="module"></script>
-		<script src="src/juice-level.ts" type="module"></script>
 	</body>
 </html>
