@@ -16,6 +16,7 @@
 		// "noUncheckedIndexedAccess": true,
 		"noImplicitOverride": true,
 		"noPropertyAccessFromIndexSignature": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"noUncheckedIndexedAccess": true
 	}
 }

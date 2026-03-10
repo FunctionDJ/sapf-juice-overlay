@@ -3,19 +3,19 @@ import http from "node:http";
 const PORT = Number(process.env.PORT ?? 3000);
 const TARGET_WINS = 3;
 const TICK_MS = Number(process.env.MOCK_TICK_MS ?? 3500);
-const DEFAULT_DOUBLES_JUICE = "#f6a44b";
+const DEFAULT_DOUBLES_JUICE = "apple";
 
-const singlesPalette = ["#fecf64", "#f39a2b", "#cc4f1d", "#8ed35a", "#50c2b0"];
+const fruitPalette = ["orange", "apple", "grape", "cherry"];
 
 const state = {
 	singles: {
 		setNumber: 1,
 		player1: {
-			juiceColor: singlesPalette[0],
+			juiceFruit: fruitPalette[0],
 			score: 0,
 		},
 		player2: {
-			juiceColor: singlesPalette[1],
+			juiceFruit: fruitPalette[1],
 			score: 0,
 		},
 		winner: null,
@@ -24,11 +24,11 @@ const state = {
 	doubles: {
 		setNumber: 1,
 		team1: {
-			juiceColor: DEFAULT_DOUBLES_JUICE,
+			juiceFruit: DEFAULT_DOUBLES_JUICE,
 			score: 0,
 		},
 		team2: {
-			juiceColor: DEFAULT_DOUBLES_JUICE,
+			juiceFruit: DEFAULT_DOUBLES_JUICE,
 			score: 0,
 		},
 		winner: null,
@@ -36,11 +36,9 @@ const state = {
 	},
 };
 
-function pickDifferentColor(currentColor) {
-	const options = singlesPalette.filter((color) => color !== currentColor);
-	return (
-		options[Math.floor(Math.random() * options.length)] ?? singlesPalette[0]
-	);
+function pickDifferentFruit(currentFruit) {
+	const options = fruitPalette.filter((fruit) => fruit !== currentFruit);
+	return options[Math.floor(Math.random() * options.length)] ?? fruitPalette[0];
 }
 
 function startNextSet(match, side1Key, side2Key, withJuiceRotation = false) {
@@ -52,11 +50,11 @@ function startNextSet(match, side1Key, side2Key, withJuiceRotation = false) {
 
 	if (withJuiceRotation) {
 		if (Math.random() < 0.65) {
-			match.player1.juiceColor = pickDifferentColor(match.player1.juiceColor);
+			match.player1.juiceFruit = pickDifferentFruit(match.player1.juiceFruit);
 		}
 
 		if (Math.random() < 0.65) {
-			match.player2.juiceColor = pickDifferentColor(match.player2.juiceColor);
+			match.player2.juiceFruit = pickDifferentFruit(match.player2.juiceFruit);
 		}
 	}
 }
@@ -124,8 +122,8 @@ function tick() {
 
 	if (!state.singles.winner && Math.random() < 0.25) {
 		const side = Math.random() < 0.5 ? "player1" : "player2";
-		state.singles[side].juiceColor = pickDifferentColor(
-			state.singles[side].juiceColor,
+		state.singles[side].juiceFruit = pickDifferentFruit(
+			state.singles[side].juiceFruit,
 		);
 	}
 }
@@ -170,12 +168,12 @@ const server = http.createServer((req, res) => {
 	if (url.pathname === "/juice") {
 		jsonResponse(res, {
 			singles: {
-				player1: state.singles.player1.juiceColor,
-				player2: state.singles.player2.juiceColor,
+				player1: state.singles.player1.juiceFruit,
+				player2: state.singles.player2.juiceFruit,
 			},
 			doubles: {
-				team1: state.doubles.team1.juiceColor,
-				team2: state.doubles.team2.juiceColor,
+				team1: state.doubles.team1.juiceFruit,
+				team2: state.doubles.team2.juiceFruit,
 			},
 		});
 		return;

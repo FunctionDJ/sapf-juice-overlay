@@ -38,87 +38,245 @@ export interface ColorTransitionController {
 	durationMs: number;
 }
 
+type OverlayMode = "singles" | "doubles" | "idle";
+
+function resolveModeFromUrl(): OverlayMode {
+	const modeParam = new URLSearchParams(window.location.search).get("mode");
+
+	if (modeParam === "doubles") {
+		return "doubles";
+	}
+
+	if (modeParam === "idle") {
+		return "idle";
+	}
+
+	return "singles";
+}
+
 function setJuiceTargetByIndex(
 	controller: JuiceLevelController,
 	index: number,
 ) {
 	const levelCount = controller.levelTargets.length;
-	controller.targetIndex = ((index % levelCount) + levelCount) % levelCount;
+	controller.targetIndex = Math.max(0, Math.min(index, levelCount - 1));
 }
 
-function setupDevControls(
-	controllers: JuiceLevelController[],
-	colorControllers: ColorTransitionController[],
+function setJuiceColorByFruit(
+	colorController: ColorTransitionController,
+	fruitName: string,
 	config: Config,
 ) {
-	const decrementButton =
-		document.querySelector<HTMLButtonElement>("#decrement");
-	const incrementButton =
-		document.querySelector<HTMLButtonElement>("#increment");
-	const decrementRightButton =
-		document.querySelector<HTMLButtonElement>("#decrement-right");
-	const incrementRightButton =
-		document.querySelector<HTMLButtonElement>("#increment-right");
+	const fruitColor = config.colors[fruitName]?.side;
 
-	decrementButton?.addEventListener("click", () => {
-		setJuiceTargetByIndex(controllers[0], controllers[0].targetIndex - 1);
-	});
+	if (fruitColor === undefined || fruitColor === colorController.targetColor) {
+		return;
+	}
 
-	incrementButton?.addEventListener("click", () => {
-		setJuiceTargetByIndex(controllers[0], controllers[0].targetIndex + 1);
-	});
+	colorController.startColor = colorController.currentColor;
+	colorController.targetColor = fruitColor;
+	colorController.startTime = performance.now();
+}
 
-	decrementRightButton?.addEventListener("click", () => {
-		setJuiceTargetByIndex(controllers[1], controllers[1].targetIndex - 1);
-	});
+interface ApiSinglesResponse {
+	setNumber: number;
+	player1: { score: number };
+	player2: { score: number };
+	winner: string | null;
+}
 
-	incrementRightButton?.addEventListener("click", () => {
-		setJuiceTargetByIndex(controllers[1], controllers[1].targetIndex + 1);
-	});
+interface ApiDoublesResponse {
+	setNumber: number;
+	team1: { score: number };
+	team2: { score: number };
+	winner: string | null;
+}
 
-	// Setup fruit selectors
-	const fruitLeft = document.querySelector<HTMLSelectElement>("#fruit-left");
-	const fruitRight = document.querySelector<HTMLSelectElement>("#fruit-right");
+interface ApiJuiceResponse {
+	singles: Record<string, string>;
+	doubles: Record<string, string>;
+}
 
-	const fruitNames = Object.keys(config.colors);
-	const selects = [fruitLeft, fruitRight];
+interface ApiSnapshot {
+	setNumber: number;
+	winner: string | null;
+	leftScore: number;
+	rightScore: number;
+	leftFruit: string;
+	rightFruit: string;
+}
 
-	selects.forEach((select, index) => {
-		if (!select) {
+let previousSnapshot: ApiSnapshot | null = null;
+
+function logApiChanges(previous: ApiSnapshot, current: ApiSnapshot) {
+	const changed: Record<
+		string,
+		{ from: string | number | null; to: string | number | null }
+	> = {};
+
+	if (previous.setNumber !== current.setNumber) {
+		changed["setNumber"] = { from: previous.setNumber, to: current.setNumber };
+	}
+
+	if (previous.winner !== current.winner) {
+		changed["winner"] = { from: previous.winner, to: current.winner };
+	}
+
+	if (previous.leftScore !== current.leftScore) {
+		changed["leftScore"] = {
+			from: previous.leftScore,
+			to: current.leftScore,
+		};
+	}
+
+	if (previous.rightScore !== current.rightScore) {
+		changed["rightScore"] = {
+			from: previous.rightScore,
+			to: current.rightScore,
+		};
+	}
+
+	if (previous.leftFruit !== current.leftFruit) {
+		changed["leftFruit"] = {
+			from: previous.leftFruit,
+			to: current.leftFruit,
+		};
+	}
+
+	if (previous.rightFruit !== current.rightFruit) {
+		changed["rightFruit"] = {
+			from: previous.rightFruit,
+			to: current.rightFruit,
+		};
+	}
+
+	if (Object.keys(changed).length > 0) {
+		console.log("[juice-api] change", changed);
+	}
+}
+
+async function pollApi(
+	config: Config,
+	mode: Exclude<OverlayMode, "idle">,
+	levelControllers: JuiceLevelController[],
+	colorControllers: ColorTransitionController[],
+) {
+	try {
+		const scoresEndpoint = mode === "doubles" ? "/doubles" : "/singles";
+		const scoresResponse = await fetch(`${config.apiUrl}${scoresEndpoint}`);
+		const juiceResponse = await fetch(`${config.apiUrl}/juice`);
+
+		if (!scoresResponse.ok || !juiceResponse.ok) {
 			return;
 		}
 
-		fruitNames.forEach((fruitName) => {
-			const option = document.createElement("option");
-			option.value = fruitName;
-			option.textContent =
-				fruitName.charAt(0).toUpperCase() + fruitName.slice(1);
-			select.appendChild(option);
-		});
+		let leftScore = 0;
+		let rightScore = 0;
+		let winner: string | null = null;
+		let setNumber = 1;
+		let leftFruit = "";
+		let rightFruit = "";
 
-		select.addEventListener("change", (e) => {
+		if (mode === "doubles") {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-			const target = e.target as HTMLSelectElement;
-			const fruitName = target.value;
-			const fruitColor = config.colors[fruitName].side;
+			const scores = (await scoresResponse.json()) as ApiDoublesResponse;
+			const {
+				setNumber: nextSetNumber,
+				winner: nextWinner,
+				team1,
+				team2,
+			} = scores;
+			setNumber = nextSetNumber;
+			winner = nextWinner;
+			leftScore = team1.score;
+			rightScore = team2.score;
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+			const scores = (await scoresResponse.json()) as ApiSinglesResponse;
+			const {
+				setNumber: nextSetNumber,
+				winner: nextWinner,
+				player1,
+				player2,
+			} = scores;
+			setNumber = nextSetNumber;
+			winner = nextWinner;
+			leftScore = player1.score;
+			rightScore = player2.score;
+		}
 
-			const colorController = colorControllers[index];
-			colorController.startColor = colorController.currentColor;
-			colorController.targetColor = fruitColor;
-			colorController.startTime = performance.now();
-		});
-	});
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+		const juices = (await juiceResponse.json()) as ApiJuiceResponse;
 
-	// Set initial selections
-	if (fruitLeft && fruitRight) {
-		fruitLeft.value = fruitNames[0] ?? "orange";
-		fruitRight.value = fruitNames[0] ?? "orange";
+		if (mode === "doubles") {
+			leftFruit = juices.doubles["team1"] ?? "";
+			rightFruit = juices.doubles["team2"] ?? "";
+		} else {
+			leftFruit = juices.singles["player1"] ?? "";
+			rightFruit = juices.singles["player2"] ?? "";
+		}
+
+		const currentSnapshot: ApiSnapshot = {
+			setNumber,
+			winner,
+			leftScore,
+			rightScore,
+			leftFruit,
+			rightFruit,
+		};
+
+		if (previousSnapshot !== null) {
+			logApiChanges(previousSnapshot, currentSnapshot);
+		}
+
+		previousSnapshot = currentSnapshot;
+
+		setJuiceTargetByIndex(levelControllers[0]!, leftScore);
+		if (leftFruit) {
+			setJuiceColorByFruit(colorControllers[0]!, leftFruit, config);
+		}
+
+		setJuiceTargetByIndex(levelControllers[1]!, rightScore);
+		if (rightFruit) {
+			setJuiceColorByFruit(colorControllers[1]!, rightFruit, config);
+		}
+	} catch (error) {
+		console.error("Failed to poll API:", error);
 	}
 }
 
 const configResponse = await fetch("/config.json");
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const config = (await configResponse.json()) as Config;
+
+const overlayMode = resolveModeFromUrl();
+
+const availableFruitNames = Object.keys(config.colors);
+const idleFruit = "orange";
+
+const leftDefaultFruit =
+	overlayMode === "idle"
+		? idleFruit
+		: overlayMode === "doubles"
+			? "apple"
+			: "orange";
+const rightDefaultFruit =
+	overlayMode === "idle"
+		? idleFruit
+		: overlayMode === "doubles"
+			? "apple"
+			: "apple";
+
+const resolvedLeftFruit = config.colors[leftDefaultFruit]
+	? leftDefaultFruit
+	: (availableFruitNames[0] ?? "orange");
+const resolvedRightFruit = config.colors[rightDefaultFruit]
+	? rightDefaultFruit
+	: (availableFruitNames[1] ?? resolvedLeftFruit);
+
+const leftDefaultColor = config.colors[resolvedLeftFruit]?.side ?? "#fecf64";
+const rightDefaultColor =
+	config.colors[resolvedRightFruit]?.side ?? leftDefaultColor;
 
 const canvases = document.querySelectorAll("canvas");
 const juiceLevelControllers: JuiceLevelController[] = Array.from(canvases).map(
@@ -131,21 +289,45 @@ const juiceLevelControllers: JuiceLevelController[] = Array.from(canvases).map(
 );
 
 const colorControllers: ColorTransitionController[] = Array.from(canvases).map(
-	(canvas) => ({
-		currentColor: canvas.dataset["fillColor"] ?? "#fecf64",
-		targetColor: canvas.dataset["fillColor"] ?? "#fecf64",
-		startColor: canvas.dataset["fillColor"] ?? "#fecf64",
+	(_, canvasIndex) => ({
+		currentColor: canvasIndex === 0 ? leftDefaultColor : rightDefaultColor,
+		targetColor: canvasIndex === 0 ? leftDefaultColor : rightDefaultColor,
+		startColor: canvasIndex === 0 ? leftDefaultColor : rightDefaultColor,
 		startTime: null,
 		durationMs: config.colorTransitionDurationMs,
 	}),
 );
 
-setupDevControls(juiceLevelControllers, colorControllers, config);
+if (overlayMode === "idle") {
+	juiceLevelControllers.forEach((controller) => {
+		setJuiceTargetByIndex(controller, controller.levelTargets.length - 1);
+	});
+
+	colorControllers.forEach((controller) => {
+		const idleColor = config.colors[idleFruit]?.side ?? leftDefaultColor;
+		controller.currentColor = idleColor;
+		controller.targetColor = idleColor;
+		controller.startColor = idleColor;
+		controller.startTime = null;
+	});
+} else {
+	void pollApi(config, overlayMode, juiceLevelControllers, colorControllers);
+	setInterval(
+		() =>
+			void pollApi(
+				config,
+				overlayMode,
+				juiceLevelControllers,
+				colorControllers,
+			),
+		config.refreshIntervalMs,
+	);
+}
 
 canvases.forEach((canvas, canvasIndex) => {
 	const ctx = canvas.getContext("2d")!;
-	const juiceLevelController = juiceLevelControllers[canvasIndex];
-	const colorController = colorControllers[canvasIndex];
+	const juiceLevelController = juiceLevelControllers[canvasIndex]!;
+	const colorController = colorControllers[canvasIndex]!;
 	const distanceBetweenParticles = (canvas.width + 200) / config.waveParticles;
 
 	const waveParticles: WaveParticle[] = new Array(config.waveParticles)
@@ -160,7 +342,7 @@ canvases.forEach((canvas, canvasIndex) => {
 
 	const initialRenderY =
 		canvas.height *
-		juiceLevelController.levelTargets[juiceLevelController.targetIndex];
+		juiceLevelController.levelTargets[juiceLevelController.targetIndex]!;
 	juiceLevelController.renderY = initialRenderY;
 
 	const bubbleParticles: BubbleParticle[] = [];

@@ -8,15 +8,15 @@ import type {
 import { drawPathSpline } from "./spline";
 
 function interpolateColor(
-	startHex: string,
-	endHex: string,
+	startColor: string,
+	endColor: string,
 	progress: number,
 ): string {
-	const startRGB = hexToRgb(startHex);
-	const endRGB = hexToRgb(endHex);
+	const startRGB = parseColorToRgb(startColor);
+	const endRGB = parseColorToRgb(endColor);
 
 	if (!startRGB || !endRGB) {
-		return startHex;
+		return startColor;
 	}
 
 	const r = Math.round(startRGB.r + (endRGB.r - startRGB.r) * progress);
@@ -26,15 +26,29 @@ function interpolateColor(
 	return `rgb(${String(r)}, ${String(g)}, ${String(b)})`;
 }
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-	return result
-		? {
-				r: Number.parseInt(result[1], 16),
-				g: Number.parseInt(result[2], 16),
-				b: Number.parseInt(result[3], 16),
-			}
-		: null;
+function parseColorToRgb(
+	color: string,
+): { r: number; g: number; b: number } | null {
+	const hexMatch = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+	if (hexMatch) {
+		return {
+			r: Number.parseInt(hexMatch[1]!, 16),
+			g: Number.parseInt(hexMatch[2]!, 16),
+			b: Number.parseInt(hexMatch[3]!, 16),
+		};
+	}
+
+	const rgbMatch =
+		/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i.exec(color);
+	if (rgbMatch) {
+		return {
+			r: Number.parseInt(rgbMatch[1]!, 10),
+			g: Number.parseInt(rgbMatch[2]!, 10),
+			b: Number.parseInt(rgbMatch[3]!, 10),
+		};
+	}
+
+	return null;
 }
 
 export function mainLoop(
@@ -61,7 +75,7 @@ export function mainLoop(
 	const baseWaveCenterY = canvas.height / 2;
 	const targetWaveCenterY =
 		canvas.height *
-		juiceLevelController.levelTargets[juiceLevelController.targetIndex];
+		juiceLevelController.levelTargets[juiceLevelController.targetIndex]!;
 	const currentWaveCenterY = juiceLevelController.renderY;
 	const easedWaveCenterY =
 		currentWaveCenterY +
@@ -84,15 +98,16 @@ export function mainLoop(
 				colorController.targetColor,
 				progress,
 			);
+			colorController.currentColor = fillColor;
 		} else {
 			fillColor = colorController.targetColor;
 			colorController.currentColor = colorController.targetColor;
+			colorController.startColor = colorController.targetColor;
 			colorController.startTime = null;
 		}
 	}
 
-	ctx.fillStyle = "#242321";
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	for (const particle of waveParticles) {
 		// add some random vertical velocity
@@ -172,8 +187,8 @@ export function mainLoop(
 	for (let i = bubbleParticles.length - 1; i >= 0; --i) {
 		// kill bubble particles if their X value is more than their radius/size out of canvas bounds
 		if (
-			bubbleParticles[i].position.x + bubbleParticles[i].size < 0 ||
-			bubbleParticles[i].position.x - bubbleParticles[i].size > canvas.width
+			bubbleParticles[i]!.position.x + bubbleParticles[i]!.size < 0 ||
+			bubbleParticles[i]!.position.x - bubbleParticles[i]!.size > canvas.width
 		) {
 			bubbleParticles.splice(i, 1);
 			continue;
@@ -181,14 +196,14 @@ export function mainLoop(
 
 		// kill bubble particle if their Y value is above every wave particle Y value
 		if (
-			bubbleParticles[i].position.y + bubbleParticles[i].size <
+			bubbleParticles[i]!.position.y + bubbleParticles[i]!.size <
 			Math.min(...waveParticles.map((p) => p.position.y + renderOffsetY))
 		) {
 			bubbleParticles.splice(i, 1);
 			continue;
 		}
 
-		const bubble = bubbleParticles[i];
+		const bubble = bubbleParticles[i]!;
 		// add some side-to-side swaying motion to the bubbles
 		bubble.velocity.x +=
 			Math.sin((performance.now() * 0.5) / (bubble.size * 10)) * 0.01;

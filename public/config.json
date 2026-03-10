@@ -3,7 +3,7 @@
 	"refreshIntervalMs": 500,
 	"easingFactor": 0.085,
 	"colorTransitionDurationMs": 1000,
-	"writeParticleCountDebug": true,
+	"writeParticleCountDebug": false,
 	"waveParticles": 10,
 	"dt": 0.25,
 	"colors": {
