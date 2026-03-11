@@ -1,13 +1,15 @@
 {
   "scripts": {
     "mock-api": "node mock-api/server.js",
-    "mock-api:fast": "MOCK_TICK_MS=1200 node mock-api/server.js"
+    "mock-api:fast": "MOCK_TICK_MS=1200 node mock-api/server.js",
+    "build": "vite build && rm dist/overlay-wip.png && zip -r dist.zip dist/*"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.0"
+    "typescript-eslint": "^8.56.0",
+    "vite": "^7.3.1"
   },
   "type": "module"
 }
