@@ -2,7 +2,7 @@
   "scripts": {
     "mock-api": "node mock-api/server.js",
     "mock-api:fast": "MOCK_TICK_MS=1200 node mock-api/server.js",
-    "build": "vite build && rm dist/overlay-wip.png && zip -r dist.zip dist/*"
+    "build": "vite build && rm dist/*.png && rm dist.zip && zip -r dist.zip dist/*"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
