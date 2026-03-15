@@ -8,6 +8,7 @@ export interface Config {
 	dt: number;
 	easingFactor: number;
 	colorTransitionDurationMs: number;
+	fruitColorKey: string;
 	juiceLevelTargets: number[];
 	canvases: {
 		left: {
@@ -21,7 +22,7 @@ export interface Config {
 			offsetPx: number;
 		};
 	};
-	colors: Record<string, { side: string }>;
+	colors: Record<string, Record<string, string>>;
 }
 
 export interface BubbleParticle {
@@ -80,7 +81,7 @@ function setJuiceColorByFruit(
 	fruitName: string,
 	config: Config,
 ) {
-	const fruitColor = config.colors[fruitName]?.side;
+	const fruitColor = getFruitColor(config, fruitName);
 
 	if (fruitColor === undefined || fruitColor === colorController.targetColor) {
 		return;
@@ -90,6 +91,9 @@ function setJuiceColorByFruit(
 	colorController.targetColor = fruitColor;
 	colorController.startTime = performance.now();
 }
+
+const getFruitColor = (config: Config, fruitName: string) =>
+	config.colors[fruitName]?.[config.fruitColorKey];
 
 interface ApiSinglesResponse {
 	setNumber: number;
@@ -362,9 +366,9 @@ const resolvedRightFruit = config.colors[rightDefaultFruit]
 	? rightDefaultFruit
 	: (availableFruitNames[1] ?? resolvedLeftFruit);
 
-const leftDefaultColor = config.colors[resolvedLeftFruit]?.side ?? "#fecf64";
+const leftDefaultColor = getFruitColor(config, resolvedLeftFruit) ?? "#fecf64";
 const rightDefaultColor =
-	config.colors[resolvedRightFruit]?.side ?? leftDefaultColor;
+	getFruitColor(config, resolvedRightFruit) ?? leftDefaultColor;
 
 const overlayRoot = document.querySelector<HTMLElement>(
 	"#overlay-canvases-root",
@@ -407,7 +411,7 @@ if (overlayMode === "idle") {
 	});
 
 	colorControllers.forEach((controller) => {
-		const idleColor = config.colors[idleFruit]?.side ?? leftDefaultColor;
+		const idleColor = getFruitColor(config, idleFruit) ?? leftDefaultColor;
 		controller.currentColor = idleColor;
 		controller.targetColor = idleColor;
 		controller.startColor = idleColor;
