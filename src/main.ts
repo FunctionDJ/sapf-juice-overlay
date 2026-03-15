@@ -8,6 +8,7 @@ export interface Config {
 	dt: number;
 	easingFactor: number;
 	colorTransitionDurationMs: number;
+	juiceLevelTargets: number[];
 	canvases: {
 		left: {
 			width: number;
@@ -386,7 +387,7 @@ const canvases = (["left", "right"] as const).map((side) => {
 const juiceLevelControllers: JuiceLevelController[] = canvases.map(() => ({
 	targetIndex: 1,
 	renderY: 0,
-	levelTargets: [0.9, 0.63, 0.36, 0.1],
+	levelTargets: config.juiceLevelTargets,
 	easingFactor: config.easingFactor,
 }));
 

@@ -3,6 +3,7 @@
 	"refreshIntervalMs": 500,
 	"easingFactor": 0.085,
 	"colorTransitionDurationMs": 1000,
+	"juiceLevelTargets": [0.9, 0.63, 0.36, 0.1],
 	"writeParticleCountDebug": false,
 	"waveParticles": 10,
 	"dt": 0.25,
