@@ -6,6 +6,18 @@
 	"writeParticleCountDebug": false,
 	"waveParticles": 10,
 	"dt": 0.25,
+	"canvases": {
+		"left": {
+			"width": 500,
+			"height": 1080,
+			"offsetPx": -10
+		},
+		"right": {
+			"width": 500,
+			"height": 1080,
+			"offsetPx": -10
+		}
+	},
 	"colors": {
 		"orange": {
 			"background": "#faf4bd",

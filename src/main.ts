@@ -8,6 +8,18 @@ export interface Config {
 	dt: number;
 	easingFactor: number;
 	colorTransitionDurationMs: number;
+	canvases: {
+		left: {
+			width: number;
+			height: number;
+			offsetPx: number;
+		};
+		right: {
+			width: number;
+			height: number;
+			offsetPx: number;
+		};
+	};
 	colors: Record<string, { side: string }>;
 }
 
@@ -278,17 +290,32 @@ const leftDefaultColor = config.colors[resolvedLeftFruit]?.side ?? "#fecf64";
 const rightDefaultColor =
 	config.colors[resolvedRightFruit]?.side ?? leftDefaultColor;
 
-const canvases = document.querySelectorAll("canvas");
-const juiceLevelControllers: JuiceLevelController[] = Array.from(canvases).map(
-	() => ({
-		targetIndex: 1,
-		renderY: 0,
-		levelTargets: [0.9, 0.63, 0.36, 0.1],
-		easingFactor: config.easingFactor,
-	}),
-);
+const overlayRoot = document.querySelector<HTMLElement>(
+	"#overlay-canvases-root",
+)!;
 
-const colorControllers: ColorTransitionController[] = Array.from(canvases).map(
+const canvases = (["left", "right"] as const).map((side) => {
+	const canvas = document.createElement("canvas");
+	canvas.id = `canvas-${side}`;
+	canvas.width = config.canvases[side].width;
+	canvas.height = config.canvases[side].height;
+	canvas.style.display = "block";
+	canvas.style.height = "100%";
+	canvas.style.width = "auto";
+	canvas.style.position = "absolute";
+	canvas.style[side] = `${String(config.canvases[side].offsetPx)}px`;
+	overlayRoot.append(canvas);
+	return canvas;
+});
+
+const juiceLevelControllers: JuiceLevelController[] = canvases.map(() => ({
+	targetIndex: 1,
+	renderY: 0,
+	levelTargets: [0.9, 0.63, 0.36, 0.1],
+	easingFactor: config.easingFactor,
+}));
+
+const colorControllers: ColorTransitionController[] = canvases.map(
 	(_, canvasIndex) => ({
 		currentColor: canvasIndex === 0 ? leftDefaultColor : rightDefaultColor,
 		targetColor: canvasIndex === 0 ? leftDefaultColor : rightDefaultColor,
