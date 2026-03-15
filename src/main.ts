@@ -92,22 +92,27 @@ function setJuiceColorByFruit(
 
 interface ApiSinglesResponse {
 	setNumber: number;
-	player1: { score: number };
-	player2: { score: number };
+	player1: { score: number; tag?: string };
+	player2: { score: number; tag?: string };
 	winner: string | null;
 }
 
 interface ApiDoublesResponse {
 	setNumber: number;
-	team1: { score: number };
-	team2: { score: number };
+	team1: {
+		score: number;
+		player1?: { tag?: string };
+		player2?: { tag?: string };
+	};
+	team2: {
+		score: number;
+		player1?: { tag?: string };
+		player2?: { tag?: string };
+	};
 	winner: string | null;
 }
 
-interface ApiJuiceResponse {
-	singles: Record<string, string>;
-	doubles: Record<string, string>;
-}
+type ApiJuiceResponse = Record<string, string[]>;
 
 interface ApiSnapshot {
 	setNumber: number;
@@ -119,6 +124,78 @@ interface ApiSnapshot {
 }
 
 let previousSnapshot: ApiSnapshot | null = null;
+let juiceTagsByFruit: Map<string, string> | null = null;
+let juiceLookupPromise: Promise<Map<string, string> | null> | null = null;
+
+function normalizeTag(tag: string): string {
+	return tag.trim().toLowerCase();
+}
+
+function buildJuiceLookup(juices: ApiJuiceResponse): Map<string, string> {
+	const lookup = new Map<string, string>();
+
+	for (const [fruitName, tags] of Object.entries(juices)) {
+		for (const tag of tags) {
+			lookup.set(normalizeTag(tag), fruitName);
+		}
+	}
+
+	return lookup;
+}
+
+async function loadJuiceLookupOnce(
+	config: Config,
+): Promise<Map<string, string> | null> {
+	if (juiceTagsByFruit) {
+		return juiceTagsByFruit;
+	}
+
+	if (juiceLookupPromise) {
+		return juiceLookupPromise;
+	}
+
+	juiceLookupPromise = (async () => {
+		try {
+			const juiceResponse = await fetch(`${config.apiUrl}/juice`);
+
+			if (!juiceResponse.ok) {
+				return null;
+			}
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+			const juices = (await juiceResponse.json()) as ApiJuiceResponse;
+			juiceTagsByFruit = buildJuiceLookup(juices);
+			return juiceTagsByFruit;
+		} catch (error) {
+			console.error("Failed to fetch static /juice mapping:", error);
+			return null;
+		}
+	})();
+
+	return juiceLookupPromise;
+}
+
+function resolveFruitForTags(
+	lookup: Map<string, string> | null,
+	tags: (string | undefined)[],
+): string {
+	if (!lookup) {
+		return "";
+	}
+
+	for (const tag of tags) {
+		if (tag === undefined) {
+			continue;
+		}
+
+		const fruit = lookup.get(normalizeTag(tag));
+		if (fruit !== undefined) {
+			return fruit;
+		}
+	}
+
+	return "";
+}
 
 function logApiChanges(previous: ApiSnapshot, current: ApiSnapshot) {
 	const changed: Record<
@@ -176,9 +253,9 @@ async function pollApi(
 	try {
 		const scoresEndpoint = mode === "doubles" ? "/doubles" : "/singles";
 		const scoresResponse = await fetch(`${config.apiUrl}${scoresEndpoint}`);
-		const juiceResponse = await fetch(`${config.apiUrl}/juice`);
+		const juiceLookup = await loadJuiceLookupOnce(config);
 
-		if (!scoresResponse.ok || !juiceResponse.ok) {
+		if (!scoresResponse.ok) {
 			return;
 		}
 
@@ -188,6 +265,8 @@ async function pollApi(
 		let setNumber = 1;
 		let leftFruit = "";
 		let rightFruit = "";
+		let leftTags: (string | undefined)[] = [];
+		let rightTags: (string | undefined)[] = [];
 
 		if (mode === "doubles") {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -202,6 +281,8 @@ async function pollApi(
 			winner = nextWinner;
 			leftScore = team1.score;
 			rightScore = team2.score;
+			leftTags = [team1.player1?.tag, team1.player2?.tag];
+			rightTags = [team2.player1?.tag, team2.player2?.tag];
 		} else {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 			const scores = (await scoresResponse.json()) as ApiSinglesResponse;
@@ -215,18 +296,12 @@ async function pollApi(
 			winner = nextWinner;
 			leftScore = player1.score;
 			rightScore = player2.score;
+			leftTags = [player1.tag];
+			rightTags = [player2.tag];
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-		const juices = (await juiceResponse.json()) as ApiJuiceResponse;
-
-		if (mode === "doubles") {
-			leftFruit = juices.doubles["team1"] ?? "";
-			rightFruit = juices.doubles["team2"] ?? "";
-		} else {
-			leftFruit = juices.singles["player1"] ?? "";
-			rightFruit = juices.singles["player2"] ?? "";
-		}
+		leftFruit = resolveFruitForTags(juiceLookup, leftTags);
+		rightFruit = resolveFruitForTags(juiceLookup, rightTags);
 
 		const currentSnapshot: ApiSnapshot = {
 			setNumber,

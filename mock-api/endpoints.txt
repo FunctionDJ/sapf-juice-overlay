@@ -4,7 +4,8 @@
 127.0.0.1:3000/casters
 127.0.0.1:3000/juice
 
-maybe we store juices like 
-Orange = [P1, P2]
-Apple = [] 
-Etc
+/juice response format (static):
+{
+	"apple": ["player1", "player2"],
+	"orange": ["player3", "player4"]
+}

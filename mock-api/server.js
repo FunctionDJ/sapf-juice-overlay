@@ -3,19 +3,42 @@ import http from "node:http";
 const PORT = Number(process.env.PORT ?? 3000);
 const TARGET_WINS = 3;
 const TICK_MS = Number(process.env.MOCK_TICK_MS ?? 3500);
-const DEFAULT_DOUBLES_JUICE = "apple";
 
-const fruitPalette = ["orange", "apple", "grape", "cherry"];
+// /juice is static and should contain every supported tag from startup.
+const JUICE_BY_FRUIT = {
+	apple: ["Bonjwa", "Silas"],
+	orange: ["Branspeed", "meamking", "Laurster"],
+	grape: ["Fiction", "Pipsqueak"],
+	cherry: ["Jmook", "Magi"],
+};
+
+const ALL_PLAYER_TAGS = Object.values(JUICE_BY_FRUIT).flat();
+
+function pickDistinctTagsFromPool(pool, count) {
+	if (pool.length <= count) {
+		return [...new Set(pool)].slice(0, count);
+	}
+
+	const chosen = new Set();
+	while (chosen.size < count) {
+		const randomTag = pool[Math.floor(Math.random() * pool.length)];
+		if (randomTag) {
+			chosen.add(randomTag);
+		}
+	}
+
+	return [...chosen];
+}
 
 const state = {
 	singles: {
 		setNumber: 1,
 		player1: {
-			juiceFruit: fruitPalette[0],
+			tag: "Branspeed",
 			score: 0,
 		},
 		player2: {
-			juiceFruit: fruitPalette[1],
+			tag: "Bonjwa",
 			score: 0,
 		},
 		winner: null,
@@ -24,11 +47,13 @@ const state = {
 	doubles: {
 		setNumber: 1,
 		team1: {
-			juiceFruit: DEFAULT_DOUBLES_JUICE,
+			player1: { tag: "Bonjwa" },
+			player2: { tag: "Silas" },
 			score: 0,
 		},
 		team2: {
-			juiceFruit: DEFAULT_DOUBLES_JUICE,
+			player1: { tag: "meamking" },
+			player2: { tag: "Laurster" },
 			score: 0,
 		},
 		winner: null,
@@ -36,26 +61,21 @@ const state = {
 	},
 };
 
-function pickDifferentFruit(currentFruit) {
-	const options = fruitPalette.filter((fruit) => fruit !== currentFruit);
-	return options[Math.floor(Math.random() * options.length)] ?? fruitPalette[0];
-}
-
-function startNextSet(match, side1Key, side2Key, withJuiceRotation = false) {
+function startNextSet(match, side1Key, side2Key) {
 	match.setNumber += 1;
 	match[side1Key].score = 0;
 	match[side2Key].score = 0;
 	match.winner = null;
 	match.cooldownTicks = 0;
 
-	if (withJuiceRotation) {
-		if (Math.random() < 0.65) {
-			match.player1.juiceFruit = pickDifferentFruit(match.player1.juiceFruit);
-		}
-
-		if (Math.random() < 0.65) {
-			match.player2.juiceFruit = pickDifferentFruit(match.player2.juiceFruit);
-		}
+	// Rotate singles tags between sets so every fruit bucket can be tested in /singles.
+	if (side1Key === "player1" && side2Key === "player2") {
+		const [
+			nextPlayer1Tag = match.player1.tag,
+			nextPlayer2Tag = match.player2.tag,
+		] = pickDistinctTagsFromPool(ALL_PLAYER_TAGS, 2);
+		match.player1.tag = nextPlayer1Tag;
+		match.player2.tag = nextPlayer2Tag;
 	}
 }
 
@@ -79,7 +99,7 @@ function progressWinnerCooldown(match, side1Key, side2Key) {
 
 	match.cooldownTicks -= 1;
 	if (match.cooldownTicks <= 0) {
-		startNextSet(match, side1Key, side2Key, side1Key === "player1");
+		startNextSet(match, side1Key, side2Key);
 	}
 }
 
@@ -118,13 +138,6 @@ function tick() {
 		advanceMatch(state.singles, "player1", "player2");
 	} else {
 		advanceMatch(state.doubles, "team1", "team2");
-	}
-
-	if (!state.singles.winner && Math.random() < 0.25) {
-		const side = Math.random() < 0.5 ? "player1" : "player2";
-		state.singles[side].juiceFruit = pickDifferentFruit(
-			state.singles[side].juiceFruit,
-		);
 	}
 }
 
@@ -166,16 +179,7 @@ const server = http.createServer((req, res) => {
 	}
 
 	if (url.pathname === "/juice") {
-		jsonResponse(res, {
-			singles: {
-				player1: state.singles.player1.juiceFruit,
-				player2: state.singles.player2.juiceFruit,
-			},
-			doubles: {
-				team1: state.doubles.team1.juiceFruit,
-				team2: state.doubles.team2.juiceFruit,
-			},
-		});
+		jsonResponse(res, JUICE_BY_FRUIT);
 		return;
 	}
 
