@@ -14,15 +14,20 @@ export interface Config {
 	refreshIntervalMs: number;
 	waveParticles: number;
 	dt: number;
-	easingFactor: number;
-	colorTransitionDurationMs: number;
 	juiceLevelTargets: number[];
 	layouts: {
 		"main-screen-center": OverlayLayout;
 		"main-screen-right": OverlayLayout;
 	};
-	colors: Record<string, string>;
+	colors: {
+		orange: string;
+		apple: string;
+		grape: string;
+		cherry: string;
+	};
 }
+
+export type Fruit = keyof Config["colors"];
 
 const configResponse = await fetch("/config.json", { cache: "no-store" });
 const configText = await configResponse.text();

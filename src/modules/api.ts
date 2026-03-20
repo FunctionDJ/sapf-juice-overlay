@@ -1,20 +1,20 @@
 import { config } from "./config";
 
 interface ApiSinglesResponse {
-	player1: { score: number; tag?: string };
-	player2: { score: number; tag?: string };
+	player1: { score: number; tag: string };
+	player2: { score: number; tag: string };
 }
 
 interface ApiDoublesResponse {
 	team1: {
 		score: number;
-		player1?: { tag?: string };
-		player2?: { tag?: string };
+		player1?: { tag: string };
+		player2?: { tag: string };
 	};
 	team2: {
 		score: number;
-		player1?: { tag?: string };
-		player2?: { tag?: string };
+		player1?: { tag: string };
+		player2?: { tag: string };
 	};
 }
 

@@ -1,8 +1,6 @@
 import http from "node:http";
 
-const PORT = Number(process.env["PORT"] ?? 3000);
 const TARGET_WINS = 3;
-const TICK_MS = Number(process.env["MOCK_TICK_MS"] ?? 3500);
 
 // /juice is static and should contain every supported tag from startup.
 const JUICE_BY_FRUIT = {
@@ -155,7 +153,7 @@ function tick() {
 	}
 }
 
-setInterval(tick, TICK_MS);
+setInterval(tick, 1200);
 
 function jsonResponse(
 	res: http.ServerResponse,
@@ -202,7 +200,6 @@ const server = http.createServer((req, res) => {
 	jsonResponse(res, { error: "Not found" }, 404);
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-	console.log(`Mock API listening at http://127.0.0.1:${String(PORT)}`);
-	console.log(`Tick interval: ${String(TICK_MS)}ms`);
+server.listen(3000, "127.0.0.1", () => {
+	console.log(`Mock API listening at http://127.0.0.1:${String(3000)}`);
 });

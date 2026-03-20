@@ -1,12 +1,12 @@
 {
   "scripts": {
-    "mock-api": "node mock-api/server.js",
-    "mock-api:fast": "MOCK_TICK_MS=1200 node mock-api/server.js",
+    "dev": "bun mock-api.ts & vite",
     "build": "vite build && rm dist/*.png && rm -f dist.zip && zip -r dist.zip dist/*"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.0",
+    "gsap": "^3.14.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0",
     "vite": "^7.3.1"

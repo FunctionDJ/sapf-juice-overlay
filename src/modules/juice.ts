@@ -1,26 +1,24 @@
 import { fetchApi } from "./api";
+import type { Fruit } from "./config";
 
 const juiceData = await fetchApi("/juice");
 
-const juiceLookup = new Map<string, string>();
+const juiceLookup = new Map<string, Fruit>();
 
 for (const [fruitName, tags] of Object.entries(juiceData)) {
 	for (const tag of tags) {
-		juiceLookup.set(tag, fruitName);
+		// TS always views object entries keys (here: fruitName) as just "string"
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+		juiceLookup.set(tag, fruitName as Fruit);
 	}
 }
 
-export const getFruitByTag = (tags: (string | undefined)[]) => {
-	for (const tag of tags) {
-		if (tag === undefined) {
-			continue;
-		}
+export const getFruitByTag = (tag: string) => {
+	const fruit = juiceLookup.get(tag);
 
-		const fruit = juiceLookup.get(tag);
-		if (fruit !== undefined) {
-			return fruit;
-		}
+	if (fruit !== undefined) {
+		return fruit;
 	}
 
-	return null;
+	throw new Error(`No fruit found for tags: ${tag}`);
 };

@@ -11,43 +11,22 @@ const juiceDisplays = [
 ] as const;
 
 async function pollApi() {
-	const scoresEndpoint = mode === "doubles" ? "/doubles" : "/singles";
-	const scoresResponse = await fetch(`${config.apiUrl}${scoresEndpoint}`);
-
-	if (!scoresResponse.ok) {
-		return;
-	}
-
-	let leftScore: number;
-	let rightScore: number;
-	let leftTags: (string | undefined)[];
-	let rightTags: (string | undefined)[];
-
 	if (mode === "doubles") {
 		const { team1, team2 } = await fetchApi("/doubles");
-		leftScore = team1.score;
-		rightScore = team2.score;
-		leftTags = [team1.player1?.tag, team1.player2?.tag];
-		rightTags = [team2.player1?.tag, team2.player2?.tag];
+
+		juiceDisplays[0].setJuiceTargetByIndex(team1.score);
+		juiceDisplays[1].setJuiceTargetByIndex(team2.score);
+
+		juiceDisplays[0].setJuiceColorByFruit("orange");
+		juiceDisplays[1].setJuiceColorByFruit("orange");
 	} else {
 		const { player1, player2 } = await fetchApi("/singles");
-		leftScore = player1.score;
-		rightScore = player2.score;
-		leftTags = [player1.tag];
-		rightTags = [player2.tag];
-	}
 
-	const scores = [leftScore, rightScore] as const;
-	const tags = [leftTags, rightTags] as const;
+		juiceDisplays[0].setJuiceTargetByIndex(player1.score);
+		juiceDisplays[1].setJuiceTargetByIndex(player2.score);
 
-	for (const i of [0, 1] as const) {
-		juiceDisplays[i].levelController.setJuiceTargetByIndex(scores[i]);
-
-		const fruit = getFruitByTag(tags[i]);
-
-		if (fruit !== null) {
-			juiceDisplays[i].colorController.setJuiceColorByFruit(fruit);
-		}
+		juiceDisplays[0].setJuiceColorByFruit(getFruitByTag(player1.tag));
+		juiceDisplays[1].setJuiceColorByFruit(getFruitByTag(player2.tag));
 	}
 }
 

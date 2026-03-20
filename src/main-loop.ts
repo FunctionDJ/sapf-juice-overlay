@@ -1,20 +1,13 @@
 import { config } from "./modules/config";
 import type { JuiceDisplay } from "./modules/JuiceDisplay";
+import { layout } from "./modules/mode";
 import { drawPathSpline } from "./spline";
 
-export function mainLoop(display: JuiceDisplay) {
-	window.requestAnimationFrame(() => {
-		mainLoop(display);
-	});
-
-	const {
-		waveParticles,
-		canvasElement: { width, height },
-		bubbleParticles,
-	} = display;
-
-	const renderOffsetY = display.levelController.getRenderOffsetY(height);
+export function renderFrame(display: JuiceDisplay) {
+	const { waveParticles, bubbleParticles } = display;
 	const ctx = display.canvasElement.getContext("2d")!;
+	const { width, height } = layout.canvas;
+	const renderOffsetY = display.renderY - height / 2;
 	ctx.clearRect(0, 0, width, height);
 
 	for (const particle of waveParticles) {
@@ -46,8 +39,7 @@ export function mainLoop(display: JuiceDisplay) {
 
 	// fill the space below the wave particles
 
-	display.colorController.update();
-	ctx.fillStyle = display.colorController.currentColor;
+	ctx.fillStyle = display.currentColor;
 	ctx.beginPath();
 	ctx.moveTo(0, height);
 

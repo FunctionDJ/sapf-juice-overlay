@@ -1,8 +1,7 @@
-import { mainLoop } from "../main-loop";
-import { config } from "./config";
-import { JuiceColorController } from "./JuiceColorController";
-import { JuiceLevelController } from "./JuiceLevelController";
-import { layout, layoutMode } from "./mode";
+import gsap from "gsap";
+import { renderFrame } from "../main-loop";
+import { config, type Fruit } from "./config";
+import { layout, layoutMode, mode } from "./mode";
 
 interface BubbleParticle {
 	position: { x: number; y: number };
@@ -11,47 +10,65 @@ interface BubbleParticle {
 	size: number;
 }
 
-interface WaveParticle {
-	position: { x: number; y: number };
-	velocity: number;
-}
+// TODO idle conditional might be unnecessary
+const initialIndex = mode === "idle" ? config.juiceLevelTargets.length - 1 : 1;
+
+const distanceBetweenParticles =
+	(layout.canvas.width + 200) / config.waveParticles;
 
 export class JuiceDisplay {
 	readonly canvasElement = document.createElement("canvas");
-	readonly levelController;
-	readonly colorController = new JuiceColorController();
 	readonly bubbleParticles: BubbleParticle[] = [];
-	readonly waveParticles: WaveParticle[];
+	readonly waveParticles = new Array(config.waveParticles)
+		.fill(0)
+		.map((_, i) => ({
+			position: {
+				x: distanceBetweenParticles * i - distanceBetweenParticles,
+				y: layout.canvas.height / 2 + (Math.random() - 0.5) * 20,
+			},
+			velocity: 1,
+		}));
+
+	public currentColor: string = config.colors.orange;
+	public renderY =
+		layout.canvas.height * config.juiceLevelTargets[initialIndex]!;
 
 	constructor(slot: "left" | "right") {
 		this.canvasElement.width = layout.canvas.width;
 		this.canvasElement.height = layout.canvas.height;
-		this.levelController = new JuiceLevelController(this.canvasElement.height);
 		this.canvasElement.style.display = "block";
-		const canvasConfig = layout.canvas;
 
 		if (layoutMode === "main-screen-center") {
 			this.canvasElement.style.position = "absolute";
 			this.canvasElement.style.top = "0";
-			this.canvasElement.style[slot] = `${String(canvasConfig.offsetPx)}px`;
+			this.canvasElement.style[slot] = `${String(layout.canvas.offsetPx)}px`;
 		} else {
 			this.canvasElement.style.position = "relative";
-			this.canvasElement.style.left = `${String(canvasConfig.offsetPx)}px`;
+			this.canvasElement.style.left = `${String(layout.canvas.offsetPx)}px`;
 		}
 
-		const distanceBetweenParticles =
-			(this.canvasElement.width + 200) / config.waveParticles;
+		gsap.ticker.add(() => {
+			renderFrame(this);
+		});
+	}
 
-		this.waveParticles = new Array(config.waveParticles)
-			.fill(0)
-			.map((_, i) => ({
-				position: {
-					x: distanceBetweenParticles * i - distanceBetweenParticles,
-					y: this.canvasElement.height / 2 + (Math.random() - 0.5) * 20,
-				},
-				velocity: 1,
-			}));
+	public setJuiceColorByFruit(fruitName: Fruit) {
+		gsap.to(this, {
+			currentColor: config.colors[fruitName],
+			duration: 1,
+		});
+	}
 
-		mainLoop(this);
+	public setJuiceTargetByIndex(index: number) {
+		const clampedIndex = Math.max(
+			0,
+			Math.min(index, config.juiceLevelTargets.length - 1),
+		);
+
+		gsap.to(this, {
+			renderY: layout.canvas.height * config.juiceLevelTargets[clampedIndex]!,
+			ease: "power3.out",
+			duration: 1,
+		});
 	}
 }
