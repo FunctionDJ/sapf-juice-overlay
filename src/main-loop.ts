@@ -1,113 +1,21 @@
-import type {
-	BubbleParticle,
-	ColorTransitionController,
-	Config,
-	JuiceLevelController,
-	WaveParticle,
-} from "./main";
+import { config } from "./modules/config";
+import type { JuiceDisplay } from "./modules/JuiceDisplay";
 import { drawPathSpline } from "./spline";
 
-function interpolateColor(
-	startColor: string,
-	endColor: string,
-	progress: number,
-): string {
-	const startRGB = parseColorToRgb(startColor);
-	const endRGB = parseColorToRgb(endColor);
-
-	if (!startRGB || !endRGB) {
-		return startColor;
-	}
-
-	const r = Math.round(startRGB.r + (endRGB.r - startRGB.r) * progress);
-	const g = Math.round(startRGB.g + (endRGB.g - startRGB.g) * progress);
-	const b = Math.round(startRGB.b + (endRGB.b - startRGB.b) * progress);
-
-	return `rgb(${String(r)}, ${String(g)}, ${String(b)})`;
-}
-
-function parseColorToRgb(
-	color: string,
-): { r: number; g: number; b: number } | null {
-	const hexMatch = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-	if (hexMatch) {
-		return {
-			r: Number.parseInt(hexMatch[1]!, 16),
-			g: Number.parseInt(hexMatch[2]!, 16),
-			b: Number.parseInt(hexMatch[3]!, 16),
-		};
-	}
-
-	const rgbMatch =
-		/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i.exec(color);
-	if (rgbMatch) {
-		return {
-			r: Number.parseInt(rgbMatch[1]!, 10),
-			g: Number.parseInt(rgbMatch[2]!, 10),
-			b: Number.parseInt(rgbMatch[3]!, 10),
-		};
-	}
-
-	return null;
-}
-
-export function mainLoop(
-	ctx: CanvasRenderingContext2D,
-	canvas: HTMLCanvasElement,
-	config: Config,
-	waveParticles: WaveParticle[],
-	bubbleParticles: BubbleParticle[],
-	juiceLevelController: JuiceLevelController,
-	colorController: ColorTransitionController,
-) {
+export function mainLoop(display: JuiceDisplay) {
 	window.requestAnimationFrame(() => {
-		mainLoop(
-			ctx,
-			canvas,
-			config,
-			waveParticles,
-			bubbleParticles,
-			juiceLevelController,
-			colorController,
-		);
+		mainLoop(display);
 	});
 
-	const baseWaveCenterY = canvas.height / 2;
-	const targetWaveCenterY =
-		canvas.height *
-		juiceLevelController.levelTargets[juiceLevelController.targetIndex]!;
-	const currentWaveCenterY = juiceLevelController.renderY;
-	const easedWaveCenterY =
-		currentWaveCenterY +
-		(targetWaveCenterY - currentWaveCenterY) *
-			juiceLevelController.easingFactor;
+	const {
+		waveParticles,
+		canvasElement: { width, height },
+		bubbleParticles,
+	} = display;
 
-	juiceLevelController.renderY = easedWaveCenterY;
-	const renderOffsetY = easedWaveCenterY - baseWaveCenterY;
-
-	// Ease color transitions
-	let fillColor = colorController.currentColor;
-
-	if (colorController.startTime !== null) {
-		const elapsed = performance.now() - colorController.startTime;
-		const progress = Math.min(elapsed / colorController.durationMs, 1);
-
-		if (progress < 1) {
-			fillColor = interpolateColor(
-				colorController.startColor,
-				colorController.targetColor,
-				progress,
-			);
-			colorController.currentColor = fillColor;
-		} else {
-			fillColor = colorController.targetColor;
-			colorController.currentColor = colorController.targetColor;
-			colorController.startColor = colorController.targetColor;
-			colorController.startTime = null;
-		}
-	}
-
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	const renderOffsetY = display.levelController.getRenderOffsetY(height);
+	const ctx = display.canvasElement.getContext("2d")!;
+	ctx.clearRect(0, 0, width, height);
 
 	for (const particle of waveParticles) {
 		// add some random vertical velocity
@@ -117,7 +25,7 @@ export function mainLoop(
 		}
 
 		// the more distance the particles Y value is from center, the more velocity is applied towards the center
-		const centerY = baseWaveCenterY;
+		const centerY = height / 2;
 		const distanceFromCenter = particle.position.y - centerY;
 		const currentVelocity = Math.abs(particle.velocity);
 
@@ -138,27 +46,28 @@ export function mainLoop(
 
 	// fill the space below the wave particles
 
-	ctx.fillStyle = fillColor;
+	display.colorController.update();
+	ctx.fillStyle = display.colorController.currentColor;
 	ctx.beginPath();
-	ctx.moveTo(0, canvas.height);
+	ctx.moveTo(0, height);
 
 	for (const particle of waveParticles) {
 		ctx.lineTo(particle.position.x, particle.position.y + renderOffsetY);
 	}
 
-	ctx.lineTo(canvas.width, canvas.height);
+	ctx.lineTo(width, height);
 	ctx.closePath();
 	ctx.fill();
 
 	ctx.save();
 	ctx.beginPath();
-	ctx.moveTo(0, canvas.height);
+	ctx.moveTo(0, height);
 
 	for (const particle of waveParticles) {
 		ctx.lineTo(particle.position.x, particle.position.y + renderOffsetY);
 	}
 
-	ctx.lineTo(canvas.width, canvas.height);
+	ctx.lineTo(width, height);
 	ctx.closePath();
 	ctx.clip();
 
@@ -168,11 +77,11 @@ export function mainLoop(
 	if (bubbleParticles.length < 50 || Math.random() < 0.1) {
 		bubbleParticles.push({
 			position: {
-				x: Math.random() * canvas.width,
+				x: Math.random() * width,
 				y:
 					Math.random() < bubbleParticles.length / 200
-						? canvas.height + 20 - Math.random() * 40
-						: canvas.height * Math.random(),
+						? height + 20 - Math.random() * 40
+						: height * Math.random(),
 			},
 			velocity: {
 				x: (Math.random() - 0.5) * 0.3,
@@ -188,7 +97,7 @@ export function mainLoop(
 		// kill bubble particles if their X value is more than their radius/size out of canvas bounds
 		if (
 			bubbleParticles[i]!.position.x + bubbleParticles[i]!.size < 0 ||
-			bubbleParticles[i]!.position.x - bubbleParticles[i]!.size > canvas.width
+			bubbleParticles[i]!.position.x - bubbleParticles[i]!.size > width
 		) {
 			bubbleParticles.splice(i, 1);
 			continue;
@@ -203,23 +112,25 @@ export function mainLoop(
 			continue;
 		}
 
-		const bubble = bubbleParticles[i]!;
+		const particle = bubbleParticles[i]!;
 		// add some side-to-side swaying motion to the bubbles
-		bubble.velocity.x +=
-			Math.sin((performance.now() * 0.5) / (bubble.size * 10)) * 0.01;
+		particle.velocity.x +=
+			Math.sin((performance.now() * 0.5) / (particle.size * 10)) * 0.01;
 
 		// update bubble particle movement
-		bubble.position.x += bubble.velocity.x;
-		bubble.position.y += bubble.velocity.y;
+		particle.position.x += particle.velocity.x;
+		particle.position.y += particle.velocity.y;
 
 		ctx.beginPath();
+
 		ctx.arc(
-			bubble.position.x,
-			bubble.position.y,
-			bubble.size * Math.min((performance.now() - bubble.birth) * 0.002, 1),
+			particle.position.x,
+			particle.position.y,
+			particle.size * Math.min((performance.now() - particle.birth) * 0.002, 1),
 			0,
 			Math.PI * 2,
 		);
+
 		ctx.fill();
 		ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
 		ctx.lineWidth = 2;
@@ -239,12 +150,5 @@ export function mainLoop(
 	// bubble particle failsafe: delete particles over 500 instances (should never happen, but just in case)
 	if (bubbleParticles.length > 500) {
 		bubbleParticles.splice(0, bubbleParticles.length - 500);
-	}
-
-	if (config.writeParticleCountDebug) {
-		// write bubble particle count for debugging
-		ctx.fillStyle = "black";
-		ctx.font = "36px sans-serif";
-		ctx.fillText(`Bubbles: ${String(bubbleParticles.length)}`, 10, 1000);
 	}
 }

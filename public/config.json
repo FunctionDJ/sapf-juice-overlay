@@ -3,51 +3,33 @@
 	"refreshIntervalMs": 500,
 	"easingFactor": 0.085,
 	"colorTransitionDurationMs": 1000,
-	"fruitColorKey": "frontBorder",
 	"juiceLevelTargets": [0.9, 0.63, 0.36, 0.1],
-	"writeParticleCountDebug": false,
 	"waveParticles": 10,
 	"dt": 0.25,
-	"canvases": {
-		"left": {
-			"width": 325,
-			"height": 1080,
-			"offsetPx": -10
+	"dt_note": "Frame-step multiplier for wave particle Y updates. lower = calmer/slower motion, higher = faster/more jittery motion.",
+	"layouts": {
+		"main-screen-center": {
+			"backgroundFill": "grey",
+			"canvas": {
+				"width": 325,
+				"height": 1080,
+				"offsetPx": -10
+			}
 		},
-		"right": {
-			"width": 325,
-			"height": 1080,
-			"offsetPx": -10
+		"main-screen-right": {
+			"_note": "Used by ?mode=doubles",
+			"backgroundFill": "#FAF4BD",
+			"canvas": {
+				"width": 615,
+				"height": 540,
+				"offsetPx": 0
+			}
 		}
 	},
 	"colors": {
-		"orange": {
-			"background": "#faf4bd",
-			"shadow": "#fcea3f",
-			"side": "#fecf64",
-			"frontBorder": "#ffeac4",
-			"fruit": "#fba930"
-		},
-		"apple": {
-			"background": "#e4ffd4",
-			"shadow": "#f19bdd",
-			"side": "#86ff5c",
-			"frontBorder": "#b8ff9a",
-			"fruit": "#4cbd64"
-		},
-		"grape": {
-			"background": "#eef8e9",
-			"shadow": "#7bcdfe",
-			"side": "#ad7ae7",
-			"frontBorder": "#d3a6ff",
-			"fruit": "#a930c0"
-		},
-		"cherry": {
-			"background": "#fff9ec",
-			"shadow": "#d3a6ff",
-			"side": "#fb9e8b",
-			"frontBorder": "#ffbeb2",
-			"fruit": "#ff5b78"
-		}
+		"orange": "#ffeac4",
+		"apple": "#b8ff9a",
+		"grape": "#d3a6ff",
+		"cherry": "#ffbeb2"
 	}
 }
