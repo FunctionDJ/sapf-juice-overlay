@@ -1,12 +1,10 @@
-interface CanvasPlacement {
-	width: number;
-	height: number;
-	offsetPx: number;
-}
-
 interface OverlayLayout {
 	backgroundFill: string;
-	canvas: CanvasPlacement;
+	canvas: {
+		width: number;
+		height: number;
+		offsetPx: number;
+	};
 }
 
 export interface Config {

@@ -7,7 +7,7 @@
 	"dt_note": "Frame-step multiplier for wave particle Y updates. lower = calmer/slower motion, higher = faster/more jittery motion.",
 	"layouts": {
 		"main-screen-center": {
-			"backgroundFill": "grey",
+			"backgroundFill": "#FAF4BD",
 			"canvas": {
 				"width": 325,
 				"height": 1080,

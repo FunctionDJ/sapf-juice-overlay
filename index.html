@@ -1,5 +1,9 @@
-<html style="width: 1920px; height: 1080px">
+<!doctype html>
+<html lang="en">
 	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Juice Overlay</title>
 		<style>
 			* {
 				padding: 0;
@@ -7,42 +11,8 @@
 			}
 		</style>
 	</head>
-
-	<body style="background: grey">
-		<div
-			style="
-				width: 100%;
-				aspect-ratio: 16/9;
-				max-height: 100%;
-				position: relative;
-				margin: 0 auto;
-			"
-		>
-			<div
-				style="
-					aspect-ratio: 16/9;
-					background-image: url(&quot;/doubles.png&quot;);
-					background-size: contain;
-					position: absolute;
-					top: 0;
-					left: 0;
-					width: 100%;
-					z-index: 10;
-				"
-			></div>
-			<div
-				id="overlay-canvases-root"
-				style="
-					position: absolute;
-					top: 0;
-					left: 0;
-					height: 100%;
-					width: 100%;
-					z-index: 5;
-				"
-			></div>
-
-			<script src="src/main.ts" type="module"></script>
-		</div>
+	<body>
+		<div id="app"></div>
+		<script src="/src/main.ts" type="module"></script>
 	</body>
 </html>
