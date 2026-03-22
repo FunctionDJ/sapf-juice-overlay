@@ -1,11 +1,12 @@
+import gsap from "gsap";
 import p5 from "p5";
 import { fetchApi } from "./modules/api";
 import { config } from "./modules/config";
-import { getFruitByTag } from "./modules/juice";
+import { SCENE_HEIGHT, SCENE_WIDTH } from "./modules/consts";
+import { juiceLookup } from "./modules/juice";
 import { JuiceDisplay } from "./modules/JuiceDisplay";
 import { layout, mode } from "./modules/mode";
 import "./modules/reload-on-config-change";
-import { SCENE_HEIGHT, SCENE_WIDTH } from "./modules/consts";
 
 const host = document.querySelector("#app")!;
 
@@ -13,33 +14,40 @@ document.body.style.background = import.meta.env.DEV
 	? "grey"
 	: layout.backgroundFill;
 
-const juiceDisplay1 = new JuiceDisplay(0);
-const juiceDisplay2 = new JuiceDisplay(1);
+new p5((p) => {
+	const juiceDisplay1 = new JuiceDisplay(0, p);
+	const juiceDisplay2 = new JuiceDisplay(1, p);
 
-async function pollApi() {
-	if (mode === "doubles") {
-		const { team1, team2 } = await fetchApi("/doubles");
+	async function pollApi() {
+		if (mode === "doubles") {
+			const { team1, team2 } = await fetchApi("/doubles");
 
-		juiceDisplay1.setJuiceTarget(team1.score);
-		juiceDisplay2.setJuiceTarget(team2.score);
-		juiceDisplay1.setJuiceColor("orange");
-		juiceDisplay2.setJuiceColor("orange");
-		return;
+			juiceDisplay1.setJuiceTarget(team1.score);
+			juiceDisplay2.setJuiceTarget(team2.score);
+		} else {
+			const { player1, player2 } = await fetchApi("/singles");
+
+			juiceDisplay1.setJuiceTarget(player1.score);
+			juiceDisplay2.setJuiceTarget(player2.score);
+
+			gsap.to(juiceDisplay1, {
+				juiceColor: config.colors[juiceLookup.get(player1.tag) ?? "orange"],
+				duration: 1,
+			});
+
+			gsap.to(juiceDisplay2, {
+				juiceColor: config.colors[juiceLookup.get(player2.tag) ?? "orange"],
+				duration: 1,
+			});
+		}
 	}
 
-	const { player1, player2 } = await fetchApi("/singles");
-
-	juiceDisplay1.setJuiceTarget(player1.score);
-	juiceDisplay2.setJuiceTarget(player2.score);
-	juiceDisplay1.setJuiceColor(getFruitByTag(player1.tag));
-	juiceDisplay2.setJuiceColor(getFruitByTag(player2.tag));
-}
-
-new p5((p) => {
 	const overlayImage = new Image();
 	overlayImage.src = mode === "doubles" ? "/doubles.png" : "/normal.png";
+	let overlay: p5.Image | null = null;
 
-	p.setup = () => {
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
+	p.setup = async () => {
 		const canvas = p.createCanvas(SCENE_WIDTH, SCENE_HEIGHT);
 		canvas.parent(host);
 		canvas.style("display", "block");
@@ -51,24 +59,21 @@ new p5((p) => {
 			void pollApi();
 			window.setInterval(() => void pollApi(), config.refreshIntervalMs);
 		}
+
+		if (import.meta.env.DEV) {
+			overlay = await p.loadImage(
+				mode === "doubles" ? "/doubles.png" : "/normal.png",
+			);
+		}
 	};
 
 	p.draw = () => {
 		p.clear();
+		juiceDisplay1.render();
+		juiceDisplay2.render();
 
-		const ctx = p.drawingContext;
-
-		if (!(ctx instanceof CanvasRenderingContext2D)) {
-			return;
-		}
-
-		juiceDisplay1.update();
-		juiceDisplay2.update();
-		juiceDisplay1.render(ctx);
-		juiceDisplay2.render(ctx);
-
-		if (import.meta.env.DEV) {
-			ctx.drawImage(overlayImage, 0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+		if (overlay !== null) {
+			p.image(overlay, 0, 0, SCENE_WIDTH, SCENE_HEIGHT);
 		}
 	};
 });
