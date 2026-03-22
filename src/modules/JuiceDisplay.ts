@@ -1,14 +1,14 @@
-import gsap from "gsap";
+import { animate } from "motion";
 import type p5 from "p5";
 import { config } from "./config";
 import { SCENE_WIDTH } from "./consts";
-import { layout, layoutMode, mode } from "./mode";
+import { layoutMode, mode } from "./mode";
 
 const {
 	width: canvasWidth,
 	height: canvasHeight,
 	offsetPx: canvasOffsetX,
-} = layout.canvas;
+} = config.layouts[layoutMode].canvas;
 
 const initialIndex = mode === "idle" ? config.juiceLevelTargets.length - 1 : 1;
 const surfaceSteps = 16;
@@ -19,9 +19,8 @@ export class JuiceDisplay {
 		16,
 		Math.floor(config.waveParticles * 0.7),
 	);
-	private currentLevelY =
-		canvasHeight * config.juiceLevelTargets[initialIndex]!;
-	public juiceColor = config.colors.orange;
+	public currentLevelY = canvasHeight * config.juiceLevelTargets[initialIndex]!;
+public fillColor = config.colors.orange;
 
 	constructor(
 		private readonly index: 0 | 1,
@@ -117,7 +116,7 @@ export class JuiceDisplay {
 		}
 
 		this.p.noStroke();
-		this.p.fill(this.juiceColor);
+		this.p.fill(this.fillColor);
 		this.p.beginShape();
 		this.drawSurface(true);
 		this.drawBubbles();

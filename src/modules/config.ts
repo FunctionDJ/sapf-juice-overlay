@@ -9,9 +9,8 @@ interface OverlayLayout {
 
 export interface Config {
 	apiUrl: string;
-	refreshIntervalMs: number;
+	apiRefreshIntervalMs: number;
 	waveParticles: number;
-	dt: number;
 	juiceLevelTargets: number[];
 	layouts: {
 		"main-screen-center": OverlayLayout;

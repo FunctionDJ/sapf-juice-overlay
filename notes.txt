@@ -1,2 +1,0 @@
-left most wave particle is at X=0 which means that some corner of the spline is sometimes visible
-solution: start at X = -10 or something

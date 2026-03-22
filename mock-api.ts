@@ -13,6 +13,7 @@ const JUICE_BY_FRUIT = {
 const ALL_PLAYER_TAGS = Object.values(JUICE_BY_FRUIT).flat();
 
 const pick2RandomPlayers = () =>
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 	[0, 0].map(
 		() => ALL_PLAYER_TAGS[Math.floor(Math.random() * ALL_PLAYER_TAGS.length)],
 	) as [string, string];

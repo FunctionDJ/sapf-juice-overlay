@@ -5,14 +5,14 @@ import { config } from "./modules/config";
 import { SCENE_HEIGHT, SCENE_WIDTH } from "./modules/consts";
 import { juiceLookup } from "./modules/juice";
 import { JuiceDisplay } from "./modules/JuiceDisplay";
-import { layout, mode } from "./modules/mode";
+import { layoutMode, mode } from "./modules/mode";
 import "./modules/reload-on-config-change";
 
 const host = document.querySelector("#app")!;
 
 document.body.style.background = import.meta.env.DEV
 	? "grey"
-	: layout.backgroundFill;
+	: config.layouts[layoutMode].backgroundFill;
 
 new p5((p) => {
 	const juiceDisplay1 = new JuiceDisplay(0, p);
@@ -46,6 +46,7 @@ new p5((p) => {
 	overlayImage.src = mode === "doubles" ? "/doubles.png" : "/normal.png";
 	let overlay: p5.Image | null = null;
 
+// https://github.com/processing/p5.js/issues/8662
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
 	p.setup = async () => {
 		const canvas = p.createCanvas(SCENE_WIDTH, SCENE_HEIGHT);
@@ -57,7 +58,7 @@ new p5((p) => {
 
 		if (mode !== "idle") {
 			void pollApi();
-			window.setInterval(() => void pollApi(), config.refreshIntervalMs);
+			window.setInterval(() => void pollApi(), config.apiRefreshIntervalMs);
 		}
 
 		if (import.meta.env.DEV) {
