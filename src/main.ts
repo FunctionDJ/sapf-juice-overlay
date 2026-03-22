@@ -1,4 +1,4 @@
-import gsap from "gsap";
+import { animate } from "motion";
 import p5 from "p5";
 import { fetchApi } from "./modules/api";
 import { config } from "./modules/config";
@@ -30,15 +30,17 @@ new p5((p) => {
 			juiceDisplay1.setJuiceTarget(player1.score);
 			juiceDisplay2.setJuiceTarget(player2.score);
 
-			gsap.to(juiceDisplay1, {
-				juiceColor: config.colors[juiceLookup.get(player1.tag) ?? "orange"],
-				duration: 1,
-			});
+			animate(
+				juiceDisplay1,
+				{ fillColor: config.colors[juiceLookup.get(player1.tag) ?? "orange"] },
+				{ duration: 1 },
+			);
 
-			gsap.to(juiceDisplay2, {
-				juiceColor: config.colors[juiceLookup.get(player2.tag) ?? "orange"],
-				duration: 1,
-			});
+			animate(
+				juiceDisplay2,
+				{ fillColor: config.colors[juiceLookup.get(player2.tag) ?? "orange"] },
+				{ duration: 1 },
+			);
 		}
 	}
 
@@ -46,7 +48,7 @@ new p5((p) => {
 	overlayImage.src = mode === "doubles" ? "/doubles.png" : "/normal.png";
 	let overlay: p5.Image | null = null;
 
-// https://github.com/processing/p5.js/issues/8662
+	// https://github.com/processing/p5.js/issues/8662
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
 	p.setup = async () => {
 		const canvas = p.createCanvas(SCENE_WIDTH, SCENE_HEIGHT);

@@ -20,7 +20,7 @@ export class JuiceDisplay {
 		Math.floor(config.waveParticles * 0.7),
 	);
 	public currentLevelY = canvasHeight * config.juiceLevelTargets[initialIndex]!;
-public fillColor = config.colors.orange;
+	public fillColor = config.colors.orange;
 
 	constructor(
 		private readonly index: 0 | 1,
@@ -28,11 +28,13 @@ public fillColor = config.colors.orange;
 	) {}
 
 	setJuiceTarget(index: number) {
-		gsap.to(this, {
-			currentLevelY: canvasHeight * config.juiceLevelTargets[index],
-			ease: "power3.out",
-			duration: 1,
-		});
+		animate<JuiceDisplay>(
+			this,
+			{
+				currentLevelY: canvasHeight * (config.juiceLevelTargets[index] ?? 0.5),
+			},
+			{ duration: 1, ease: "easeOut" },
+		);
 	}
 
 	private getSurfaceY(x: number) {

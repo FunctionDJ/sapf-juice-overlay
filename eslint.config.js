@@ -5,12 +5,12 @@ import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-	{ ignores: ["eslint.config.js"] },
+	{ ignores: ["eslint.config.js", "dist"] },
 	eslint.configs.recommended,
 	tseslint.configs.strictTypeChecked,
 	tseslint.configs.stylisticTypeChecked,
 	{
-		files: ["src/**/*.ts"],
+		files: ["./**/*.ts"],
 		languageOptions: {
 			parserOptions: {
 				projectService: true,
