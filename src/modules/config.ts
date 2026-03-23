@@ -8,9 +8,11 @@ interface OverlayLayout {
 }
 
 export interface Config {
-	apiUrl: string;
-	apiRefreshIntervalMs: number;
-	waveParticles: number;
+	bubbles: {
+		amount: number;
+		pace: number;
+		randomExtraPace: number;
+	};
 	juiceLevelTargets: number[];
 	layouts: {
 		"main-screen-center": OverlayLayout;

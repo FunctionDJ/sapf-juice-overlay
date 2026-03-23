@@ -147,11 +147,8 @@ function tick() {
 	progressWinnerCooldown(state.singles);
 	progressWinnerCooldown(state.doubles);
 
-	if (Math.random() < 0.52) {
-		advanceMatch(state.singles);
-	} else {
-		advanceMatch(state.doubles);
-	}
+	advanceMatch(state.singles);
+	advanceMatch(state.doubles);
 }
 
 setInterval(tick, 1200);

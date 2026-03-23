@@ -2,7 +2,6 @@ import { animate } from "motion";
 import p5 from "p5";
 import { fetchApi } from "./modules/api";
 import { config } from "./modules/config";
-import { SCENE_HEIGHT, SCENE_WIDTH } from "./modules/consts";
 import { juiceLookup } from "./modules/juice";
 import { JuiceDisplay } from "./modules/JuiceDisplay";
 import { layoutMode, mode } from "./modules/mode";
@@ -51,7 +50,7 @@ new p5((p) => {
 	// https://github.com/processing/p5.js/issues/8662
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return
 	p.setup = async () => {
-		const canvas = p.createCanvas(SCENE_WIDTH, SCENE_HEIGHT);
+		const canvas = p.createCanvas();
 		canvas.parent(host);
 		canvas.style("display", "block");
 		canvas.style("width", "100%");
@@ -60,7 +59,7 @@ new p5((p) => {
 
 		if (mode !== "idle") {
 			void pollApi();
-			window.setInterval(() => void pollApi(), config.apiRefreshIntervalMs);
+			window.setInterval(() => void pollApi(), 500);
 		}
 
 		if (import.meta.env.DEV) {
@@ -76,7 +75,7 @@ new p5((p) => {
 		juiceDisplay2.render();
 
 		if (overlay !== null) {
-			p.image(overlay, 0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+			p.image(overlay, 0, 0);
 		}
 	};
 });

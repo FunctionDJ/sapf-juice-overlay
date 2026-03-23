@@ -1,3 +1,17 @@
 {
-	"js/ts.referencesCodeLens.enabled": true
+	"js/ts.referencesCodeLens.enabled": true,
+	"chat.tools.terminal.autoApprove": {
+		"/^bunx tsc --noEmit$/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^bunx eslint \\.$/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^bunx cloc \\. --vsc=git$/": {
+			"approve": true,
+			"matchCommandLine": true
+		}
+	}
 }

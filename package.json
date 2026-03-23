@@ -12,6 +12,6 @@
   "scripts": {
     "dev": "bun mock-api.ts & vite",
     "build": "vite build && rm dist/*.png && rm -f dist.zip && zip -r dist.zip dist/*",
-    "check-lint-build": "bunx tsc && bunx eslint . && vite build"
+    "check-lint-build": "bunx tsc && bunx eslint . && bun run build"
   }
 }

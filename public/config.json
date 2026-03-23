@@ -1,8 +1,10 @@
 {
-	"apiUrl": "http://localhost:3000",
-	"apiRefreshIntervalMs": 500,
 	"juiceLevelTargets": [0.9, 0.63, 0.36, 0.1],
-	"waveParticles": 10,
+	"bubbles": {
+		"amount": 150,
+		"pace": 11000,
+		"randomExtraPace": 5678
+	},
 	"layouts": {
 		"main-screen-center": {
 			"backgroundFill": "#FAF4BD",
@@ -16,14 +18,14 @@
 			"_note": "Used by ?mode=doubles",
 			"backgroundFill": "#FAF4BD",
 			"canvas": {
-				"width": 615,
+				"width": 620,
 				"height": 540,
 				"offsetPx": 0
 			}
 		}
 	},
 	"colors": {
-		"orange": "#ffeac4",
+		"orange": "#fecf64",
 		"apple": "#b8ff9a",
 		"grape": "#d3a6ff",
 		"cherry": "#ffbeb2"
