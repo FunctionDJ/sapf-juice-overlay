@@ -24,7 +24,7 @@ This video shows the idle bubble and wave animation as well as the juice height 
 
 Note that the the juice level animation is swiftly followed by a scene transition / animation which is part of the stream production and not this project.
 
-<video src='https://github.com/FunctionDJ/sapf-juice-overlay/raw/refs/heads/main/docs/SAPF%202%20Day%203%20%5BjIGK-_0NihU%5D.webm' width=180/>
+<video src='https://github.com/FunctionDJ/sapf-juice-overlay/raw/refs/heads/main/docs/SAPF%202%20Day%203%20%5BjIGK-_0NihU%5D.webm' width="180"/>
 
 Source: https://youtu.be/jIGK-_0NihU / Team Phoenix YouTube Channel
 
