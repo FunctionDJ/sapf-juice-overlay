@@ -11,6 +11,7 @@ Features:
 - particle system to have bubbles rising up to the surface
 - polls Team Phoenix' stream system to display juice flavor/color that matches what the player on that side of the stream picked when they registered for the tournament
 - juice pillar rises or falls depending on the current score of a player with a smooth transition
+- mock API server during development that mimicks Team Phoenix' stream system backend
 
 ## Screenshot in production
 
@@ -24,7 +25,7 @@ This video shows the idle bubble and wave animation as well as the juice height 
 
 Note that the the juice level animation is swiftly followed by a scene transition / animation which is part of the stream production and not this project.
 
-[SAPF 2 Day 3 [jIGK-_0NihU].webm](https://github.com/user-attachments/assets/94b1c8a0-3e4a-437e-bcb9-fc1b5ff31b08)
+[SAPF 2 Day 3 [jIGK-\_0NihU].webm](https://github.com/user-attachments/assets/94b1c8a0-3e4a-437e-bcb9-fc1b5ff31b08)
 
 Source: https://youtu.be/jIGK-_0NihU / Team Phoenix YouTube Channel
 
